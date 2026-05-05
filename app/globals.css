@@ -1,26 +1,71 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-syne: var(--font-syne);
+  --font-mono: var(--font-mono);
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #04080F;
+  --bg2: #070E1A;
+  --blue: #3B82F6;
+  --cyan: #06B6D4;
+  --amber: #F59E0B;
+  --white: #EFF6FF;
+  --gray: #64748B;
+  --gray2: #94A3B8;
+  --surface: #0A1628;
+  --surface2: #0D1E35;
+  --border: rgba(59, 130, 246, 0.12);
+  --border2: rgba(255, 255, 255, 0.06);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--white);
+    font-family: var(--font-mono), monospace;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* grain */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    opacity: 0.022;
+    pointer-events: none;
+    z-index: 999;
+  }
+
+  /* scrollbar */
+  ::-webkit-scrollbar {
+    width: 3px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--bg);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--blue);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  .text-stroke {
+    -webkit-text-stroke: 1px rgba(59, 130, 246, 0.5);
+  }
 }
