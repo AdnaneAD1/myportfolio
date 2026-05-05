@@ -13,14 +13,23 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [lang, setLang] = useState<Language>('fr');
-
-  useEffect(() => {
-    const savedLang = localStorage.getItem('portfolio-lang') as Language;
-    if (savedLang && (savedLang === 'fr' || savedLang === 'en')) {
-      setLang(savedLang);
+  // Initialize state directly from localStorage/navigator to avoid cascading renders
+  const [lang, setLang] = useState<Language>(() => {
+    if (typeof window !== 'undefined') {
+      const savedLang = localStorage.getItem('portfolio-lang') as Language;
+      if (savedLang && (savedLang === 'fr' || savedLang === 'en')) return savedLang;
+      
+      // Auto-detect browser language
+      const browserLang = navigator.language.split('-')[0];
+      return (browserLang === 'en' || browserLang === 'fr') ? (browserLang as Language) : 'fr';
     }
-  }, []);
+    return 'fr';
+  });
+
+  // Sync HTML lang attribute with the current language
+  useEffect(() => {
+    document.documentElement.lang = lang;
+  }, [lang]);
 
   const setLanguage = (newLang: Language) => {
     setLang(newLang);
