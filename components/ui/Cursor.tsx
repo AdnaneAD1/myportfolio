@@ -12,7 +12,16 @@ export default function Cursor() {
   const outerX = useSpring(0, springConfig);
   const outerY = useSpring(0, springConfig);
 
+  const [isMobile, setIsMobile] = useState(true);
+
   useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.matchMedia("(max-width: 1024px)").matches || 'ontouchstart' in window);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
     const handleMouseMove = (e: MouseEvent) => {
       setMousePos({ x: e.clientX, y: e.clientY });
       outerX.set(e.clientX);
@@ -31,6 +40,7 @@ export default function Cursor() {
     });
 
     return () => {
+      window.removeEventListener('resize', checkMobile);
       window.removeEventListener('mousemove', handleMouseMove);
       interactiveElements.forEach((el) => {
         el.removeEventListener('mouseenter', handleHover);
@@ -38,6 +48,8 @@ export default function Cursor() {
       });
     };
   }, [outerX, outerY]);
+
+  if (isMobile) return null;
 
   return (
     <>
