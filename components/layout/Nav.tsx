@@ -6,51 +6,24 @@ import { Circle, FileDown, Globe } from 'lucide-react';
 import { INFO, UI } from '@/lib/data';
 import { useLanguage } from '@/context/LanguageContext';
 
+import { useStore } from '@/lib/store';
+
 export default function Nav() {
   const { lang, toggleLanguage } = useLanguage();
+  const { currentIndex, goTo } = useStore();
   const ui = UI[lang];
-  const [activeSection, setActiveSection] = useState('hero');
-  const [scrolled, setScrolled] = useState(false);
 
   const navLinks = [
-    { name: ui.nav.home, href: '#hero' },
-    { name: ui.nav.about, href: '#about' },
-    { name: ui.nav.skills, href: '#skills' },
-    { name: ui.nav.work, href: '#projects' },
-    { name: ui.nav.xp, href: '#experience' },
-    { name: ui.nav.contact, href: '#contact' },
+    { name: ui.nav.home, index: 0 },
+    { name: ui.nav.about, index: 1 },
+    { name: ui.nav.skills, index: 2 },
+    { name: ui.nav.work, index: 3 },
+    { name: ui.nav.xp, index: 4 },
+    { name: ui.nav.contact, index: 5 },
   ];
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
-
-      const sections = document.querySelectorAll('section[id]');
-      let current = 'hero';
-      
-      sections.forEach((section) => {
-        const sectionTop = (section as HTMLElement).offsetTop;
-        if (window.scrollY >= sectionTop - 200) {
-          current = section.getAttribute('id') || 'hero';
-        }
-      });
-      setActiveSection(current);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const scrollTo = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-    e.preventDefault();
-    const target = document.querySelector(href);
-    if (target) {
-      target.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-[100] flex items-center justify-between px-6 md:px-12 py-5 transition-all duration-300 ${scrolled ? 'bg-[var(--bg)]/80 backdrop-blur-xl border-b border-[var(--border2)]' : 'bg-transparent'}`}>
+    <nav className="fixed top-0 left-0 right-0 z-[100] flex items-center justify-between px-6 md:px-12 py-5 bg-transparent">
       <div className="flex items-center gap-3 font-display font-extrabold text-sm tracking-tight text-[var(--white)]">
         <motion.div
           animate={{ opacity: [1, 0.3, 1] }}
@@ -64,14 +37,13 @@ export default function Nav() {
 
       <ul className="hidden md:flex items-center gap-8 list-none">
         {navLinks.map((link) => (
-          <li key={link.href}>
-            <a
-              href={link.href}
-              onClick={(e) => scrollTo(e, link.href)}
-              className={`text-[0.62rem] tracking-[0.15em] uppercase transition-colors duration-200 ${activeSection === link.href.substring(1) ? 'text-[var(--cyan)]' : 'text-[var(--gray2)] hover:text-[var(--cyan)]'}`}
+          <li key={link.index}>
+            <button
+              onClick={() => goTo(link.index)}
+              className={`text-[0.62rem] tracking-[0.15em] uppercase transition-colors duration-200 cursor-none ${currentIndex === link.index ? 'text-[var(--cyan)]' : 'text-[var(--gray2)] hover:text-[var(--cyan)]'}`}
             >
               {link.name}
-            </a>
+            </button>
           </li>
         ))}
       </ul>
@@ -85,17 +57,6 @@ export default function Nav() {
           {lang === 'fr' ? 'EN' : 'FR'}
         </button>
 
-        {/* 
-        <a 
-          href="/cv.pdf" 
-          download 
-          className="hidden lg:flex items-center gap-2 text-[0.6rem] tracking-[0.12em] uppercase text-[var(--gray2)] hover:text-[var(--white)] transition-colors group"
-        >
-          <FileDown size={14} className="group-hover:translate-y-0.5 transition-transform" />
-          {ui.nav.cv}
-        </a>
-        */}
-        
         <div className="hidden sm:flex items-center gap-2 text-[0.6rem] tracking-[0.12em] uppercase text-[var(--gray2)]">
           <motion.div
             animate={{ opacity: [1, 0.3, 1] }}

@@ -31,13 +31,16 @@
 
   html {
     scroll-behavior: smooth;
+    overflow: hidden;
+    height: 100%;
   }
 
   body {
     background: var(--bg);
     color: var(--white);
     font-family: var(--font-mono), monospace;
-    overflow-x: hidden;
+    overflow: hidden;
+    height: 100%;
     cursor: none;
   }
 
