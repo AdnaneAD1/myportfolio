@@ -45,8 +45,8 @@ export default function Contact() {
 
   return (
     <SectionWrapper index={5}>
-      <section id="contact" className="h-screen overflow-y-auto custom-scrollbar">
-        <div className="min-h-full flex items-center py-24">
+      <section id="contact" className="min-h-screen overflow-y-auto custom-scrollbar">
+        <div className="min-h-full flex items-center py-24 pb-48">
           <div className="max-w-[1100px] mx-auto px-6 md:px-12 w-full">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-20 items-start">
               <RevealWrapper>

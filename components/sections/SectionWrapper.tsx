@@ -14,28 +14,28 @@ interface SectionWrapperProps {
 
 const TRANSITIONS = {
   exitNext: {
-    y: '-10%',
-    scale: 0.9,
+    y: '-30%',
+    scale: 0.8,
     opacity: 0,
-    rotateX: 10,
-    duration: 1.0,
+    rotateX: 20,
+    duration: 1.1,
     ease: 'power3.inOut',
   },
   exitPrev: {
-    y: '10%',
-    scale: 0.9,
+    y: '30%',
+    scale: 0.8,
     opacity: 0,
-    rotateX: -10,
-    duration: 1.0,
+    rotateX: -20,
+    duration: 1.1,
     ease: 'power3.inOut',
   },
   enterNext: {
-    from: { y: '100%', scale: 1.1, opacity: 0, rotateX: -15 },
-    to: { y: '0%', scale: 1, opacity: 1, rotateX: 0, duration: 1.1, ease: 'power3.out' },
+    from: { y: '100%', scale: 1.2, opacity: 0, rotateX: -25 },
+    to: { y: '0%', scale: 1, opacity: 1, rotateX: 0, duration: 1.2, ease: 'power3.out' },
   },
   enterPrev: {
-    from: { y: '-100%', scale: 1.1, opacity: 0, rotateX: 15 },
-    to: { y: '0%', scale: 1, opacity: 1, rotateX: 0, duration: 1.1, ease: 'power3.out' },
+    from: { y: '-100%', scale: 1.2, opacity: 0, rotateX: 25 },
+    to: { y: '0%', scale: 1, opacity: 1, rotateX: 0, duration: 1.2, ease: 'power3.out' },
   },
 };
 
@@ -45,7 +45,6 @@ export default function SectionWrapper({ index, children }: SectionWrapperProps)
 
   const isActive = currentIndex === index;
   const wasActive = previousIndex === index;
-  const isVisible = isActive || wasActive;
 
   useGSAP(() => {
     if (!ref.current) return;
@@ -64,8 +63,7 @@ export default function SectionWrapper({ index, children }: SectionWrapperProps)
         ...config,
         onComplete: () => {
           if (ref.current) {
-            gsap.set(ref.current, { clearProps: 'all' });
-            // Keep it hidden if not active
+            gsap.set(ref.current, { clearProps: 'transform,opacity' });
             if (currentIndex !== index) {
               gsap.set(ref.current, { display: 'none' });
             }
@@ -77,7 +75,7 @@ export default function SectionWrapper({ index, children }: SectionWrapperProps)
     } else {
       gsap.set(ref.current, { display: 'none' });
     }
-  }, { dependencies: [currentIndex], scope: ref });
+  }, { dependencies: [currentIndex, direction, previousIndex], scope: ref });
 
   return (
     <div

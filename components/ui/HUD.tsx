@@ -38,16 +38,16 @@ export default function HUD() {
         </span>
       </div>
 
-      {/* Bottom Center: Navigation Matrix */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
-        <span className="text-[0.45rem] tracking-[0.2em] text-[var(--gray)] uppercase font-mono">
+      {/* Top Center: Navigation Matrix */}
+      <div className="absolute top-24 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
+        <span className="text-[0.4rem] tracking-[0.2em] text-[var(--gray)] uppercase font-mono opacity-60">
           Navigation Matrix
         </span>
         <div className="flex gap-1.5">
           {SECTIONS.map((_, i) => (
             <div 
               key={i}
-              className={`h-[2px] transition-all duration-500 ${
+              className={`h-[1px] transition-all duration-500 ${
                 i <= currentIndex ? 'w-4 bg-[var(--blue)]' : 'w-2 bg-[var(--border2)]'
               }`}
             />

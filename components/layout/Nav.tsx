@@ -23,7 +23,7 @@ export default function Nav() {
   ];
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-[100] flex items-center justify-between px-6 md:px-12 py-5 bg-transparent">
+    <nav className="fixed top-0 left-0 right-0 z-[100] flex items-center justify-between px-6 md:px-12 py-4 bg-[rgba(4,8,15,0.7)] backdrop-blur-md border-b border-[var(--border2)] md:bg-transparent md:backdrop-blur-none md:border-none">
       <div className="flex items-center gap-3 font-display font-extrabold text-sm tracking-tight text-[var(--white)]">
         <motion.div
           animate={{ opacity: [1, 0.3, 1] }}

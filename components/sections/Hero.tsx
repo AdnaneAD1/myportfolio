@@ -85,7 +85,7 @@ export default function Hero() {
           </motion.div>
         </div>
 
-        <div className="hidden md:flex flex-col self-stretch border-l border-[var(--border2)] pt-24 pb-16 pl-10">
+        <div className="grid grid-cols-2 md:flex md:flex-col self-stretch border-t md:border-t-0 md:border-l border-[var(--border2)] mt-8 md:mt-0 pt-10 md:pt-24 pb-20 md:pb-16 pl-0 md:pl-10 gap-x-6 gap-y-10 md:gap-0">
           {stats.map((stat, i) => (
             <motion.div 
               key={stat.label}
@@ -93,24 +93,24 @@ export default function Hero() {
               variants={fadeUp}
               initial="initial"
               animate="animate"
-              className="group py-6 border-bottom border-[var(--border2)] relative transition-all duration-300 hover:pl-2"
+              className="group py-0 md:py-6 md:border-bottom border-[var(--border2)] relative transition-all duration-300 hover:pl-2"
             >
-              <div className="absolute left-[-1px] top-0 bottom-0 w-[2px] bg-[var(--cyan)] scale-y-0 origin-top transition-transform duration-300 group-hover:scale-y-100" />
-              <div className="font-display text-[2.6rem] font-extrabold tracking-[-0.04em] text-[var(--white)] leading-none">
+              <div className="absolute left-[-1px] top-0 bottom-0 w-[2px] bg-[var(--cyan)] scale-y-0 origin-top transition-transform duration-300 group-hover:scale-y-100 hidden md:block" />
+              <div className="font-display text-[1.8rem] md:text-[2.6rem] font-extrabold tracking-[-0.04em] text-[var(--white)] leading-none">
                 {stat.num.includes('+') ? (
                   <>
-                    {stat.num.replace('+', '')}<sup className="text-[1.1rem] text-[var(--blue)] align-super">+</sup>
+                    {stat.num.replace('+', '')}<sup className="text-[0.9rem] md:text-[1.1rem] text-[var(--blue)] align-super">+</sup>
                   </>
                 ) : stat.num}
               </div>
-              <div className="text-[0.58rem] tracking-[0.12em] uppercase text-[var(--gray)] mt-1">
+              <div className="text-[0.5rem] md:text-[0.58rem] tracking-[0.12em] uppercase text-[var(--gray)] mt-1">
                 {stat.label}
               </div>
             </motion.div>
           ))}
         </div>
 
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-[0.55rem] tracking-[0.2em] uppercase text-[var(--gray)]">
+        <div className="hidden md:flex absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-[0.55rem] tracking-[0.2em] uppercase text-[var(--gray)]">
           <span>Explore</span>
           <div className="w-[1px] h-11 bg-gradient-to-b from-[var(--blue)] to-transparent relative overflow-hidden">
             <motion.div

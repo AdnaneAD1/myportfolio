@@ -7,7 +7,7 @@ export function useImmersiveNav() {
   const { goNext, goPrev } = useStore();
   const lastScrollTime = useRef(0);
   const touchStartY = useRef(0);
-  const THROTTLE_MS = 1400; // Increased slightly for safety
+  const THROTTLE_MS = 1100; // Reduced for better reactivity
   const MIN_DELTA = 30; // Ignore tiny scrolls
 
   useEffect(() => {
@@ -92,7 +92,7 @@ export function useImmersiveNav() {
       if (state.isTransitioning) return;
       
       const delta = touchStartY.current - e.changedTouches[0].clientY;
-      if (Math.abs(delta) < 60) return; // Touch sensitivity
+      if (Math.abs(delta) < 40) return; // Touch sensitivity improved
 
       const scrollable = getScrollableParent(e.target as HTMLElement);
       if (scrollable && canScrollInternal(scrollable, delta)) return;
