@@ -33,11 +33,11 @@ export default function Hero() {
 
   return (
     <SectionWrapper index={0}>
-      <section id="hero" className="min-h-screen grid grid-cols-1 md:grid-cols-[1fr_360px] px-6 md:px-12 items-center relative overflow-hidden">
+      <section id="hero" className="min-h-full md:min-h-screen flex flex-col md:grid md:grid-cols-[1fr_360px] px-6 md:px-12 items-center relative md:overflow-hidden">
         <div className="absolute top-[20%] left-[25%] w-[500px] h-[500px] bg-[radial-gradient(ellipse,rgba(59,130,246,0.07)_0%,transparent_70%)] pointer-events-none" />
         <div className="absolute bottom-[15%] right-[15%] w-[350px] h-[350px] bg-[radial-gradient(ellipse,rgba(6,182,212,0.05)_0%,transparent_70%)] pointer-events-none" />
 
-        <div className="py-24 md:py-16">
+        <div className="pt-28 pb-20 md:py-16 w-full">
           <motion.div 
             custom={0} variants={fadeUp} initial="initial" animate="animate"
             className="flex items-center gap-3 mb-7 text-[0.6rem] tracking-[0.2em] uppercase text-[var(--cyan)]"
@@ -48,7 +48,7 @@ export default function Hero() {
 
           <motion.h1 
             custom={1} variants={fadeUp} initial="initial" animate="animate"
-            className="font-display text-[clamp(3.2rem,6.5vw,6rem)] font-extrabold leading-[0.92] tracking-[-0.04em] text-[var(--white)] mb-6 uppercase"
+            className="hero-name font-display text-[clamp(2.8rem,13vw,6rem)] font-extrabold leading-[0.92] tracking-[-0.04em] text-[var(--white)] mb-6 uppercase"
           >
             {firstName}<br />
             <span className="text-stroke text-transparent">{lastNameFirstPart}</span>{lastNameSecondPart}
@@ -56,17 +56,17 @@ export default function Hero() {
 
           <motion.p 
             custom={2} variants={fadeUp} initial="initial" animate="animate"
-            className="text-[0.82rem] leading-[1.85] text-[var(--gray2)] max-width-[460px] mb-11 border-l-2 border-[rgba(59,130,246,0.25)] pl-5"
+            className="text-[0.82rem] leading-[1.85] text-[var(--gray2)] max-w-[460px] mb-11 border-l-2 border-[rgba(59,130,246,0.25)] pl-5"
           >
             {info.subtitle}<br />
             <strong className="text-[var(--white)] font-normal">{info.stack}</strong>
           </motion.p>
 
-          <motion.div custom={3} variants={fadeUp} initial="initial" animate="animate" className="flex flex-wrap gap-3">
+          <motion.div custom={3} variants={fadeUp} initial="initial" animate="animate" className="hero-btns flex flex-col sm:flex-row gap-3">
             <Magnetic>
               <button 
                 onClick={() => goTo(3)}
-                className="inline-flex items-center gap-2 bg-[var(--blue)] hover:bg-[#2563EB] text-[var(--white)] text-[0.68rem] tracking-[0.1em] uppercase px-7 py-3 transition-all transform hover:-translate-y-0.5 active:translate-y-0 cursor-none"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[var(--blue)] hover:bg-[#2563EB] text-[var(--white)] text-[0.68rem] tracking-[0.1em] uppercase px-7 py-3 transition-all transform hover:-translate-y-0.5 active:translate-y-0 cursor-none"
               >
                 {ui.nav.work} <ArrowUpRight size={14} />
               </button>
@@ -77,15 +77,35 @@ export default function Hero() {
                 href={INFO.github} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 bg-transparent border border-[var(--border2)] hover:border-[rgba(255,255,255,0.2)] text-[var(--gray2)] hover:text-[var(--white)] text-[0.68rem] tracking-[0.1em] uppercase px-6 py-3 transition-all cursor-none"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-transparent border border-[var(--border2)] hover:border-[rgba(255,255,255,0.2)] text-[var(--gray2)] hover:text-[var(--white)] text-[0.68rem] tracking-[0.1em] uppercase px-6 py-3 transition-all cursor-none"
               >
                 GitHub <Github size={14} />
               </a>
             </Magnetic>
           </motion.div>
+
+          {/* Stats Grid Mobile Only */}
+          <div className="grid grid-cols-2 gap-6 mt-16 md:hidden border-t border-[var(--border2)] pt-10">
+            {stats.map((stat, i) => (
+              <motion.div 
+                key={stat.label}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.8 + i * 0.1 }}
+              >
+                <div className="font-display text-2xl font-extrabold text-white">
+                  {stat.num.includes('+') ? (
+                    <>{stat.num.replace('+', '')}<sup className="text-sm text-[var(--blue)]">+</sup></>
+                  ) : stat.num}
+                </div>
+                <div className="text-[0.55rem] uppercase tracking-wider text-[var(--gray)] mt-1">{stat.label}</div>
+              </motion.div>
+            ))}
+          </div>
         </div>
 
-        <div className="grid grid-cols-2 md:flex md:flex-col self-stretch border-t md:border-t-0 md:border-l border-[var(--border2)] mt-8 md:mt-0 pt-10 md:pt-24 pb-20 md:pb-16 pl-0 md:pl-10 gap-x-6 gap-y-10 md:gap-0">
+        {/* Desktop Stats Panel */}
+        <div className="hidden md:flex flex-col self-stretch border-l border-[var(--border2)] pt-24 pb-16 pl-10">
           {stats.map((stat, i) => (
             <motion.div 
               key={stat.label}
@@ -93,17 +113,17 @@ export default function Hero() {
               variants={fadeUp}
               initial="initial"
               animate="animate"
-              className="group py-0 md:py-6 md:border-bottom border-[var(--border2)] relative transition-all duration-300 hover:pl-2"
+              className="group py-6 border-b border-[var(--border2)] last:border-0 relative transition-all duration-300 hover:pl-2"
             >
-              <div className="absolute left-[-1px] top-0 bottom-0 w-[2px] bg-[var(--cyan)] scale-y-0 origin-top transition-transform duration-300 group-hover:scale-y-100 hidden md:block" />
-              <div className="font-display text-[1.8rem] md:text-[2.6rem] font-extrabold tracking-[-0.04em] text-[var(--white)] leading-none">
+              <div className="absolute left-[-1px] top-0 bottom-0 w-[2px] bg-[var(--cyan)] scale-y-0 origin-top transition-transform duration-300 group-hover:scale-y-100" />
+              <div className="font-display text-[2.6rem] font-extrabold tracking-[-0.04em] text-[var(--white)] leading-none">
                 {stat.num.includes('+') ? (
                   <>
-                    {stat.num.replace('+', '')}<sup className="text-[0.9rem] md:text-[1.1rem] text-[var(--blue)] align-super">+</sup>
+                    {stat.num.replace('+', '')}<sup className="text-[1.1rem] text-[var(--blue)] align-super">+</sup>
                   </>
                 ) : stat.num}
               </div>
-              <div className="text-[0.5rem] md:text-[0.58rem] tracking-[0.12em] uppercase text-[var(--gray)] mt-1">
+              <div className="text-[0.58rem] tracking-[0.12em] uppercase text-[var(--gray)] mt-1">
                 {stat.label}
               </div>
             </motion.div>
@@ -115,7 +135,7 @@ export default function Hero() {
           <div className="w-[1px] h-11 bg-gradient-to-b from-[var(--blue)] to-transparent relative overflow-hidden">
             <motion.div
               animate={{ y: [0, 44, 44] }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" as const }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
               className="absolute top-0 left-0 w-full h-1/2 bg-[var(--white)]"
             />
           </div>

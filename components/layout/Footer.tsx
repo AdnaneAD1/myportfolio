@@ -4,11 +4,11 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-[var(--border2)] px-6 md:px-12 py-6 flex flex-row items-end justify-between bg-[var(--bg)] gap-4">
-      <div className="text-[0.6rem] text-[var(--gray)] tracking-[0.08em] uppercase md:max-w-none">
+    <footer className="border-t border-[var(--border2)] px-6 md:px-12 py-6 flex flex-row items-center justify-between bg-[var(--bg)] gap-2 pointer-events-auto">
+      <div className="text-[0.6rem] text-[var(--gray)] tracking-[0.08em] uppercase whitespace-nowrap">
         © {currentYear} <span className="text-[var(--gray2)]">{INFO.name}</span>
       </div>
-      <div className="flex gap-4 md:gap-8">
+      <div className="footer-links flex gap-3 md:gap-8">
         <a 
           href={INFO.github} 
           target="_blank" 

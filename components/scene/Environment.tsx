@@ -1,16 +1,17 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Stars, Points, PointMaterial } from '@react-three/drei';
 import * as THREE from 'three';
 
 function Particles() {
   const ref = useRef<THREE.Points>(null);
-  const count = 800;
-  
+
   // Use state initializer to ensure this only runs once and is considered "safe"
   const [positions] = useState(() => {
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+    const count = isMobile ? 400 : 800;
     const pos = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) {
       pos[i * 3] = (Math.random() - 0.5) * 40;
@@ -47,6 +48,14 @@ export default function Environment() {
   const currentIndex = useStore((s) => s.currentIndex);
   const fogRef = useRef<THREE.Fog>(null);
   const lightRef = useRef<THREE.PointLight>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   const colors = [
     '#3B82F6', // Hero (Blue)
@@ -72,12 +81,20 @@ export default function Environment() {
     <>
       <color attach="background" args={['#04080F']} />
       <fog ref={fogRef} attach="fog" args={['#04080F', 5, 25]} />
-      
+
       <ambientLight intensity={0.4} />
       <pointLight ref={lightRef} position={[10, 10, 10]} intensity={1.5} />
       <pointLight position={[-10, -10, -10]} color={colors[currentIndex]} intensity={0.5} />
-      
-      <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
+
+      <Stars
+        radius={100}
+        depth={50}
+        count={isMobile ? 1500 : 5000}
+        factor={4}
+        saturation={0}
+        fade
+        speed={1}
+      />
       <Particles />
     </>
   );

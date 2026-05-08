@@ -1,6 +1,4 @@
-'use client';
-
-import { useRef, useEffect, ReactNode } from 'react';
+import { useRef, useEffect, ReactNode, useState } from 'react';
 import { useStore } from '@/lib/store';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
@@ -42,6 +40,14 @@ const TRANSITIONS = {
 export default function SectionWrapper({ index, children }: SectionWrapperProps) {
   const { currentIndex, previousIndex, direction, setTransitioning } = useStore();
   const ref = useRef<HTMLDivElement>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   const isActive = currentIndex === index;
   const wasActive = previousIndex === index;
@@ -85,8 +91,10 @@ export default function SectionWrapper({ index, children }: SectionWrapperProps)
         top: 0,
         left: 0,
         width: '100%',
-        height: '100vh',
-        overflow: 'hidden auto',
+        height: isMobile ? '100dvh' : '100vh',
+        overflowY: isMobile ? 'auto' : 'hidden',
+        overflowX: 'hidden',
+        WebkitOverflowScrolling: 'touch',
         willChange: 'transform, opacity',
         transformStyle: 'preserve-3d',
         zIndex: isActive ? 2 : 1,

@@ -72,3 +72,56 @@
     -webkit-text-stroke: 1px rgba(59, 130, 246, 0.5);
   }
 }
+
+@media (max-width: 768px) {
+  /* Réduire les espacements internes sur mobile */
+  .s-inner, .section-inner {
+    padding: 5rem 1.5rem 3rem !important;
+  }
+
+  /* Réduire les gaps entre éléments */
+  .exp-list { gap: 0 !important; }
+  .proj-grid { gap: 1px !important; }
+
+  /* Réduire la hauteur min des sections qui doivent scroller */
+  #hero, #about, #projects, #experience, #contact {
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    overflow-y: auto !important;
+    padding-bottom: 80px !important; /* Espace pour le footer */
+  }
+
+  /* Titres de section */
+  .s-title, .section-title {
+    font-size: clamp(1.8rem, 7vw, 2.5rem) !important;
+    margin-bottom: 2rem !important;
+  }
+
+  /* Footer : Garder SIDI AMADOU à gauche et Gmail/GitHub à droite */
+  footer {
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 1.5rem 1.2rem !important;
+  }
+
+  footer .footer-links {
+    gap: 1rem !important;
+  }
+
+  footer span, footer a {
+    font-size: 0.55rem !important;
+  }
+
+  /* Boutons hero côte à côte -> empilés si trop serrés */
+  .hero-btns {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.8rem !important;
+  }
+
+  /* Nom hero */
+  .hero-name {
+    font-size: clamp(2.8rem, 13vw, 5rem) !important;
+  }
+}

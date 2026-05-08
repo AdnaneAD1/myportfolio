@@ -5,15 +5,15 @@ export const INFO = {
   location: "Bénin / Remote / Relocalisation / Présentiel",
   available: true,
   fr: {
-    title: "Ingénieur Full Stack & Tech Lead",
-    subtitle: "J'architecture et conçois des produits numériques performants, de l'idée initiale à la mise en production à grande échelle.",
-    stack: "Expertise : Laravel · Next.js · Python · TypeScript",
+    title: "Software Developer & Tech Lead",
+    subtitle: "Spécialisé Backend & Architecture Logicielle",
+    stack: "Laravel · Python · FastAPI · Next.js · TypeScript",
     status: "Disponible",
   },
   en: {
-    title: "Full Stack Engineer & Tech Lead",
-    subtitle: "Architecting and building high-performance digital products, scaling from initial concept to large-scale production.",
-    stack: "Expertise: Laravel · Next.js · Python · TypeScript",
+    title: "Software Developer & Tech Lead",
+    subtitle: "Specialized in Backend & Software Architecture",
+    stack: "Laravel · Python · FastAPI · Next.js · TypeScript",
     status: "Available",
   }
 }
@@ -35,20 +35,20 @@ export const STATS = {
 
 export const SKILLS = [
   {
-    fr: { category: "Langages" },
-    en: { category: "Languages" },
+    fr: { category: "Backend (Cœur de métier)" },
+    en: { category: "Backend (Core focus)" },
     items: [
-      { name: "TypeScript", featured: true },
-      { name: "JavaScript", featured: true },
-      { name: "Python",     featured: true },
-      { name: "PHP",        featured: true },
-      { name: "Dart",       featured: false },
-      { name: "SQL",        featured: false },
+      { name: "Laravel",     featured: true },
+      { name: "FastAPI",     featured: true },
+      { name: "RESTful APIs",featured: false },
+      { name: "Architecture",featured: false },
+      { name: "Queues",      featured: false },
+      { name: "WebSockets",  featured: false },
     ]
   },
   {
-    fr: { category: "Frontend" },
-    en: { category: "Frontend" },
+    fr: { category: "Frontend (Complémentaire)" },
+    en: { category: "Frontend (Complementary)" },
     items: [
       { name: "Next.js",     featured: true },
       { name: "React",       featured: true },
@@ -59,15 +59,15 @@ export const SKILLS = [
     ]
   },
   {
-    fr: { category: "Backend" },
-    en: { category: "Backend" },
+    fr: { category: "Langages" },
+    en: { category: "Languages" },
     items: [
-      { name: "Laravel",     featured: true },
-      { name: "FastAPI",     featured: true },
-      { name: "RESTful APIs",featured: false },
-      { name: "Architecture",featured: false },
-      { name: "Queues",      featured: false },
-      { name: "WebSockets",  featured: false },
+      { name: "TypeScript", featured: true },
+      { name: "JavaScript", featured: true },
+      { name: "Python",     featured: true },
+      { name: "PHP",        featured: true },
+      { name: "Dart",       featured: false },
+      { name: "SQL",        featured: false },
     ]
   },
   {
@@ -217,7 +217,7 @@ export const EXPERIENCES = {
       period: "2025 — Présent",
       company: "ZeroInvestissement",
       type: "Tech Lead",
-      title: "Ingénieur Full Stack & Tech Lead",
+      title: "Software Developer & Tech Lead",
       missions: [
         "Architecture et déploiement de la plateforme Mishki (Next.js, Firebase, TypeScript).",
         "Encadrement d'une équipe de développeurs : revues de code, choix technologiques et validation des livrables.",
@@ -228,7 +228,7 @@ export const EXPERIENCES = {
       period: "2023 — Présent",
       company: "Indépendant",
       type: "Freelance",
-      title: "Développeur Full Stack & Architecte Web",
+      title: "Software Developer",
       missions: [
         "Accompagnement de startups dans la création de MVPs et la montée en charge d'applications web.",
         "Expertise en sécurité, SEO technique et intégration d'IA générative (Calixt, etc.).",
@@ -239,7 +239,7 @@ export const EXPERIENCES = {
       period: "Févr. — Avr. 2026",
       company: "SELEOGERAUBENIN",
       type: "Ingénieur Consultant",
-      title: "Développeur Full Stack",
+      title: "Software Developer",
       missions: [
         "Conception d'algorithmes de détection de doublons basés sur SHA-256 avec 80% de précision.",
         "Module de signature électronique sécurisée et automatisation de la génération documentaire PDF.",
@@ -250,7 +250,7 @@ export const EXPERIENCES = {
       period: "Mars — Juin 2025",
       company: "Diha's",
       type: "Poste Permanent",
-      title: "Développeur Full Stack",
+      title: "Software Developer",
       missions: [
         "BusinessPlan IA : moteur SWOT Groq SDK, calcul automatisé Cash Flow 12 mois.",
         "Conception de l'API REST Laravel et du frontend Next.js 15 avec dashboards Chart.js.",
@@ -263,7 +263,7 @@ export const EXPERIENCES = {
       period: "2025 — Present",
       company: "ZeroInvestissement",
       type: "Tech Lead",
-      title: "Full Stack Engineer & Tech Lead",
+      title: "Software Developer & Tech Lead",
       missions: [
         "Architecting and deploying the Mishki platform (Next.js, Firebase, TypeScript).",
         "Leading a team of developers: code reviews, architectural decisions, and delivery validation.",
@@ -274,7 +274,7 @@ export const EXPERIENCES = {
       period: "2023 — Present",
       company: "Independent",
       type: "Freelance",
-      title: "Full Stack Developer & Web Architect",
+      title: "Software Developer",
       missions: [
         "Supporting startups in building MVPs and scaling high-performance web applications.",
         "Expertise in security, technical SEO, and Generative AI integration.",
@@ -285,7 +285,7 @@ export const EXPERIENCES = {
       period: "Feb. — Apr. 2026",
       company: "SELEOGERAUBENIN",
       type: "Consulting Engineer",
-      title: "Full Stack Developer",
+      title: "Software Developer",
       missions: [
         "Designing duplicate detection algorithms based on SHA-256 with 80% similarity scoring.",
         "Secure e-signature module and automated PDF document generation pipeline.",
@@ -296,7 +296,7 @@ export const EXPERIENCES = {
       period: "March — June 2025",
       company: "Diha's",
       type: "Full-Time Position",
-      title: "Full Stack Developer",
+      title: "Software Developer",
       missions: [
         "AI BusinessPlan: SWOT engine using Groq SDK, 12-month automated Cash Flow projection.",
         "Designing Laravel REST API and Next.js 15 frontend with Chart.js dashboards.",
@@ -322,14 +322,14 @@ export const UI = {
       tag: "02",
       label: "À propos",
       heading: "Je ne fais pas des démos. <em class='italic text-[var(--blue)] not-italic'>Je livre.</em>",
-      p1: "Ingénieur en <strong>Génie Logiciel</strong> spécialisé dans la conception de systèmes robustes et scalables. Actuellement <strong>Tech Lead</strong>, j'interviens sur l'ensemble du cycle de vie des produits numériques.",
-      p2: "De l'architecture cloud au déploiement CI/CD, je transforme des idées complexes en applications prêtes pour la production, avec un focus constant sur la performance et l'expérience utilisateur.",
+      p1: "Software Developer avec plus de 3 ans d'expérience, spécialisé dans le développement backend et la conception d'architectures logicielles.",
+      p2: "Expert Laravel et Python, je conçois des APIs REST performantes, des systèmes asynchrones et des pipelines IA en production. Je maîtrise également le frontend (Next.js, React) ce qui me permet d'intervenir sur l'ensemble du cycle produit.",
       p3: "Basé au Bénin, disponible pour des projets en freelance ou des collaborations à distance.",
       cards: [
-        { title: "Ingénierie Full Stack", subtitle: "Architecture logicielle & Solutions scalables" },
+        { title: "Software Development", subtitle: "Backend robuste & APIs performantes" },
+        { title: "Architecture Logicielle", subtitle: "Systèmes scalables & asynchrones" },
         { title: "Intelligence Artificielle", subtitle: "Orchestration d'agents & LLMs" },
-        { title: "Trading Algorithmique", subtitle: "Systèmes experts & Analyse de données" },
-        { title: "DevOps & Cloud", subtitle: "Déploiement continu & Conteneurisation" },
+        { title: "DevOps & Cloud", subtitle: "Déploiement continu & Docker" },
       ]
     },
     projects: {
@@ -368,14 +368,14 @@ export const UI = {
       tag: "02",
       label: "About",
       heading: "I don't just build demos. <em class='italic text-[var(--blue)] not-italic'>I deliver.</em>",
-      p1: "<strong>Software Engineer</strong> specializing in designing robust and scalable systems. Currently serving as a <strong>Tech Lead</strong>, I manage the entire lifecycle of digital products.",
-      p2: "From cloud architecture to CI/CD deployment, I transform complex ideas into production-ready applications, with a constant focus on performance and user experience.",
+      p1: "Software Developer with over 3 years of experience, specialized in backend development and software architecture design.",
+      p2: "Expert in Laravel and Python, I design high-performance REST APIs, asynchronous systems, and AI pipelines in production. I also master frontend (Next.js, React) which allows me to intervene on the entire product cycle.",
       p3: "Based in Benin, available for freelance projects or remote collaborations.",
       cards: [
-        { title: "Full Stack Engineering", subtitle: "Software Architecture & Scalable Solutions" },
+        { title: "Software Development", subtitle: "Robust Backend & Performance APIs" },
+        { title: "Software Architecture", subtitle: "Scalable & Asynchronous Systems" },
         { title: "Artificial Intelligence", subtitle: "LLM Orchestration & AI Agents" },
-        { title: "Algorithmic Trading", subtitle: "Expert Systems & Data Analysis" },
-        { title: "DevOps & Cloud", subtitle: "Continuous Deployment & Containerization" },
+        { title: "DevOps & Cloud", subtitle: "Continuous Deployment & Docker" },
       ]
     },
     projects: {

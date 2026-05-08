@@ -20,6 +20,7 @@ export default function SceneCanvas() {
   return (
     <Canvas
       shadows
+      dpr={[1, 1.5]} // Performance optimized dpr
       camera={{ position: [0, 0, 5], fov: 45 }}
       gl={{ 
         antialias: true, 

@@ -16,11 +16,11 @@ const dmMono = DM_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Adnane SIDI-AMADOU — Développeur Full Stack",
-  description: "Portfolio de Adnane SIDI-AMADOU, Développeur Full Stack & Mobile spécialisé en Laravel, Next.js, Python et TypeScript.",
+  title: "Adnane SIDI-AMADOU — Software Developer",
+  description: "Software Developer spécialisé Backend — Laravel, Python, FastAPI, Next.js",
   openGraph: {
-    title: "Adnane SIDI-AMADOU — Développeur Full Stack",
-    description: "Conception et déploiement d'applications web et mobiles modernes.",
+    title: "Adnane SIDI-AMADOU — Software Developer",
+    description: "Software Developer spécialisé Backend — Laravel, Python, FastAPI, Next.js",
     type: "website",
     locale: "fr_FR",
     url: "https://portfolio-adnane.vercel.app", // Placeholder URL
