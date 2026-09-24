@@ -1,25 +1,19 @@
 @import "tailwindcss";
 
-@custom-variant dark (&:where(.dark, .dark *));
-
-@theme {
-  --font-syne: var(--font-syne);
-  --font-mono: var(--font-mono);
-}
-
-:root {
-  --bg: #04080F;
-  --bg2: #070E1A;
-  --blue: #3B82F6;
-  --cyan: #06B6D4;
-  --amber: #F59E0B;
-  --white: #EFF6FF;
-  --gray: #64748B;
-  --gray2: #94A3B8;
-  --surface: #0A1628;
-  --surface2: #0D1E35;
-  --border: rgba(59, 130, 246, 0.12);
-  --border2: rgba(255, 255, 255, 0.06);
+@layer theme {
+  :root {
+    --paper: #FBF6EC;
+    --paper-shade: #F2EAD8;
+    --ink: #1E2A38;
+    --ink-soft: #4A5A6A;
+    --gold: #B8863E;
+    --gold-light: #D9B876;
+    --sage: #7C9070;
+    --border: rgba(30, 42, 56, 0.12);
+    --border-gold: rgba(184, 134, 62, 0.35);
+    --shadow-warm: rgba(184, 134, 62, 0.18);
+    --shadow-book: rgba(30, 42, 56, 0.22);
+  }
 }
 
 @layer base {
@@ -31,97 +25,198 @@
 
   html {
     scroll-behavior: smooth;
-    overflow: hidden;
-    height: 100%;
+    background-color: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-source-serif), Georgia, serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   body {
-    background: var(--bg);
-    color: var(--white);
-    font-family: var(--font-mono), monospace;
-    overflow: hidden;
-    height: 100%;
-    cursor: none;
+    min-height: 100vh;
+    background-color: var(--paper);
+    color: var(--ink);
+    overflow-x: hidden;
+    position: relative;
   }
 
-  /* grain */
-  body::after {
-    content: '';
+  /* Grain de papier subtil et authentique */
+  body::before {
+    content: "";
     position: fixed;
     inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-    opacity: 0.022;
+    width: 100%;
+    height: 100%;
     pointer-events: none;
     z-index: 999;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
   }
 
-  /* scrollbar */
+  /* Focus visible obligatoire pour l'accessibilité */
+  :focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  /* Sélection de texte aux teintes d'encre et d'or */
+  ::selection {
+    background-color: rgba(184, 134, 62, 0.25);
+    color: var(--ink);
+  }
+
+  /* Scrollbar discrète teintée papier/encre */
   ::-webkit-scrollbar {
-    width: 3px;
+    width: 6px;
+    height: 6px;
   }
   ::-webkit-scrollbar-track {
-    background: var(--bg);
+    background: var(--paper);
   }
   ::-webkit-scrollbar-thumb {
-    background: var(--blue);
+    background: var(--gold-light);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--gold);
   }
 }
 
-@layer utilities {
-  .text-stroke {
-    -webkit-text-stroke: 1px rgba(59, 130, 246, 0.5);
+/* Polices utilitaires */
+.font-editorial {
+  font-family: var(--font-fraunces), serif;
+  letter-spacing: -0.02em;
+}
+
+.font-body {
+  font-family: var(--font-source-serif), Georgia, serif;
+}
+
+.font-sans-ui {
+  font-family: var(--font-inter), sans-serif;
+}
+
+/* Lettrine stylisée pour début de chapitre */
+.drop-cap::first-letter {
+  font-family: var(--font-fraunces), serif;
+  float: left;
+  font-size: 3.6rem;
+  line-height: 0.8;
+  margin-top: 0.1em;
+  margin-right: 0.15em;
+  color: var(--gold);
+  font-weight: 700;
+}
+
+/* Effets de perspective 3D pour le livre et les pages */
+.book-perspective {
+  perspective: 2500px;
+  perspective-origin: center center;
+  transform-style: preserve-3d;
+}
+
+.page-surface {
+  background-color: var(--paper);
+  border: 1px solid var(--border);
+  box-shadow: 
+    0 1px 2px rgba(30, 42, 56, 0.05),
+    inset 0 0 40px rgba(184, 134, 62, 0.06),
+    inset 1px 0 3px rgba(30, 42, 56, 0.08);
+}
+
+/* Ombre réaliste au pli central (creux de reliure) */
+.page-gutter-left {
+  background: linear-gradient(to right, rgba(30, 42, 56, 0.09) 0%, rgba(30, 42, 56, 0.02) 4%, transparent 12%);
+}
+
+.page-gutter-right {
+  background: linear-gradient(to left, rgba(30, 42, 56, 0.09) 0%, rgba(30, 42, 56, 0.02) 4%, transparent 12%);
+}
+
+/* Respect strict de prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
-@media (max-width: 768px) {
-  /* Réduire les espacements internes sur mobile */
-  .s-inner, .section-inner {
-    padding: 5rem 1.5rem 3rem !important;
+/* Styles pour le moteur physique StPageFlip */
+.stf__parent {
+  position: relative;
+  display: block;
+  box-sizing: border-box;
+  transform-style: preserve-3d;
+  margin: 0 auto;
+}
+
+.stf__wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.stf__block {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  perspective: 2500px;
+}
+
+.stf__item {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  transform-style: preserve-3d;
+}
+
+.book-page {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* =========================================================================
+   CINÉMATIQUE PHYSIQUE 3D HAUTE PERFORMANCE (120 FPS FLUIDE + COURBURE 3D)
+   Feuille unique unifiée avec élévation Z, courbure cylindrique et torsion.
+   Zéro texte coupé, fluidité parfaite et support tactile direct.
+   ========================================================================= */
+
+@keyframes pageTurnForward {
+  0% {
+    transform: rotateY(0deg);
   }
-
-  /* Réduire les gaps entre éléments */
-  .exp-list { gap: 0 !important; }
-  .proj-grid { gap: 1px !important; }
-
-  /* Réduire la hauteur min des sections qui doivent scroller */
-  #hero, #about, #projects, #experience, #contact {
-    height: 100dvh !important;
-    min-height: 100dvh !important;
-    overflow-y: auto !important;
-    padding-bottom: 80px !important; /* Espace pour le footer */
-  }
-
-  /* Titres de section */
-  .s-title, .section-title {
-    font-size: clamp(1.8rem, 7vw, 2.5rem) !important;
-    margin-bottom: 2rem !important;
-  }
-
-  /* Footer : Garder SIDI AMADOU à gauche et Gmail/GitHub à droite */
-  footer {
-    flex-direction: row !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    padding: 1.5rem 1.2rem !important;
-  }
-
-  footer .footer-links {
-    gap: 1rem !important;
-  }
-
-  footer span, footer a {
-    font-size: 0.55rem !important;
-  }
-
-  /* Boutons hero côte à côte -> empilés si trop serrés */
-  .hero-btns {
-    flex-direction: column !important;
-    align-items: flex-start !important;
-    gap: 0.8rem !important;
-  }
-
-  /* Nom hero */
-  .hero-name {
-    font-size: clamp(2.8rem, 13vw, 5rem) !important;
+  100% {
+    transform: rotateY(-180deg);
   }
 }
+
+@keyframes pageTurnBackward {
+  0% {
+    transform: rotateY(-180deg);
+  }
+  100% {
+    transform: rotateY(0deg);
+  }
+}
+
+@keyframes underPageShadow {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.22;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
