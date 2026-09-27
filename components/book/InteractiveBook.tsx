@@ -16,7 +16,8 @@ import {
   Send,
   CheckCircle2,
   Sparkles,
-  RotateCcw
+  RotateCcw,
+  X
 } from 'lucide-react';
 import { Github } from '@/components/ui/Icons';
 
@@ -221,13 +222,51 @@ export default function InteractiveBook() {
     { left: 20,   right: null }, // Spread 12: Dos fermé du livre
   ];
 
+  // Liste ordonnée de toutes les pages individuelles du livre (24 pages au total)
+  const ALL_PAGES = [
+    0,   // Couverture avant fermée
+    101, // Pages de garde : Contreplat avant
+    102, // Pages de garde : Feuille de respect avant
+    1,   // Frontispice
+    2,   // Sommaire / Table des matières
+    3,   // Chapitre I : Genèse
+    4,   // Chapitre I : Philosophie & Repères chiffrés
+    5,   // Chapitre II : L'Arsenal (Backend)
+    6,   // Chapitre II : Persistance, Déploiement & IA
+    7,   // Chapitre III : Projet 1 (Sentinel-Macro)
+    8,   // Chapitre III : Projet 2 (Mishki)
+    9,   // Chapitre III : Projet 3 (Calixt)
+    10,  // Chapitre III : Projet 4 (SeleoGeraUBenin)
+    11,  // Chapitre III : Projet 5 (BusinessPlan IA)
+    12,  // Chapitre III : Projet 6 (CKDCare)
+    13,  // Chapitre IV : Expérience 1 (ZeroInvestissement)
+    14,  // Chapitre IV : Expérience 2 (Freelance Lead)
+    15,  // Chapitre IV : Expérience 3 (SeleoGeraUBenin & Diha's)
+    16,  // Chapitre IV : Formation IFRI & Posture Tech Lead
+    17,  // Chapitre V : Correspondance & Postcard
+    18,  // Chapitre V : Quatrième de couverture
+    103, // Pages de garde arrière : Feuille de respect
+    104, // Pages de garde arrière : Contreplat final
+    20,  // Dos fermé du livre (Fin de l'ouvrage)
+  ];
+
   const [currentSpread, setCurrentSpread] = useState(0);
   const [targetSpread, setTargetSpread] = useState<number | null>(null);
   const [flipDirection, setFlipDirection] = useState<'forward' | 'backward'>('forward');
   const [isFlipping, setIsFlipping] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
-  // Moteur physique tactile direct (Drag-to-Hold en temps réel)
+  // État mobile spécifique (affichage mono-page fluide et accessible)
+  const [mobilePageIndex, setMobilePageIndex] = useState(0);
+  const [mobileTurning, setMobileTurning] = useState<{
+    direction: 'forward' | 'backward';
+    fromPage: number;
+    toPage: number;
+  } | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const mobileTurningTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Moteur physique tactile direct (Drag-to-Hold en temps réel sur desktop/tablette)
   const [isDragging, setIsDragging] = useState(false);
   const [dragProgress, setDragProgress] = useState<number | null>(null);
 
@@ -249,12 +288,89 @@ export default function InteractiveBook() {
   const dragTargetSpreadRef = useRef<number | null>(null);
   const animFrameRef = useRef<number | null>(null);
 
+  // Fonctions de conversion et de titres pour mobile
+  const chapterToMobileIndex = (chapterId: string): number => {
+    switch (chapterId) {
+      case 'cover': return 0;
+      case 'endpapers': return 1;
+      case 'title': return 3;
+      case 'toc': return 4;
+      case 'about': return 5;
+      case 'skills': return 7;
+      case 'projects': return 9;
+      case 'experience': return 15;
+      case 'contact': return 19;
+      case 'back-cover': return 23;
+      default: return 4;
+    }
+  };
+
+  const spreadToMobileIndex = (spread: number): number => {
+    const p = SPREADS[spread];
+    if (!p) return 0;
+    const targetPage = p.left !== null ? p.left : p.right;
+    const idx = ALL_PAGES.indexOf(targetPage ?? 0);
+    return idx >= 0 ? idx : 0;
+  };
+
+  const mobileIndexToSpread = (mIndex: number): number => {
+    const pageNum = ALL_PAGES[mIndex];
+    for (let s = 0; s < SPREADS.length; s++) {
+      if (SPREADS[s].left === pageNum || SPREADS[s].right === pageNum) {
+        return s;
+      }
+    }
+    return 0;
+  };
+
+  const getMobilePageTitle = (index: number): { title: string; subtitle?: string } => {
+    const pageNum = ALL_PAGES[index];
+    switch (pageNum) {
+      case 0: return { title: 'Couverture', subtitle: 'Livre fermé' };
+      case 101: return { title: 'Pages de garde', subtitle: 'Contreplat' };
+      case 102: return { title: 'Feuille de respect', subtitle: 'Garde volante' };
+      case 1: return { title: 'Frontispice', subtitle: 'Page de titre' };
+      case 2: return { title: 'Sommaire', subtitle: 'Table des matières' };
+      case 3: return { title: 'Chapitre I', subtitle: 'Genèse' };
+      case 4: return { title: 'Chapitre I', subtitle: 'Philosophie & Chiffres' };
+      case 5: return { title: 'Chapitre II', subtitle: "L'Arsenal (Backend)" };
+      case 6: return { title: 'Chapitre II', subtitle: 'Persistance & IA' };
+      case 7: return { title: 'Projet 1', subtitle: 'Sentinel-Macro' };
+      case 8: return { title: 'Projet 2', subtitle: 'Mishki' };
+      case 9: return { title: 'Projet 3', subtitle: 'Calixt' };
+      case 10: return { title: 'Projet 4', subtitle: 'SeleoGeraUBenin' };
+      case 11: return { title: 'Projet 5', subtitle: 'BusinessPlan IA' };
+      case 12: return { title: 'Projet 6', subtitle: 'CKDCare' };
+      case 13: return { title: 'Chapitre IV', subtitle: 'ZeroInvestissement' };
+      case 14: return { title: 'Chapitre IV', subtitle: 'Freelance Lead' };
+      case 15: return { title: 'Chapitre IV', subtitle: "SeleoGeraUBenin & Diha's" };
+      case 16: return { title: 'Chapitre IV', subtitle: 'Formation & Tech Lead' };
+      case 17: return { title: 'Chapitre V', subtitle: 'Correspondance' };
+      case 18: return { title: 'Épilogue', subtitle: 'Quatrième de couverture' };
+      case 103: return { title: 'Pages de garde', subtitle: 'Feuille de respect' };
+      case 104: return { title: 'Pages de garde', subtitle: 'Contreplat final' };
+      case 20: return { title: 'Dos fermé', subtitle: "Fin de l'ouvrage" };
+      default: return { title: `Page ${index + 1}` };
+    }
+  };
+
+  // Synchronisation responsive lors du changement d'écran (mobile <-> desktop/tablette)
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(prev => {
+        if (!prev && mobile) {
+          setMobilePageIndex(spreadToMobileIndex(currentSpread));
+        } else if (prev && !mobile) {
+          setCurrentSpread(mobileIndexToSpread(mobilePageIndex));
+        }
+        return mobile;
+      });
+    };
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+  }, [currentSpread, mobilePageIndex]);
 
   // Déclencheur automatique de tournage (Boutons / Clavier - 620ms ultra-fluide)
   const turnToSpread = useCallback((newSpread: number) => {
@@ -279,13 +395,81 @@ export default function InteractiveBook() {
     }, 620);
   }, [isFlipping, isDragging, currentSpread, soundEnabled, totalSpreads]);
 
+  // Navigation fluide sur mobile (tournage réaliste de 420ms d'une page à la suivante)
+  const goToMobilePage = useCallback((newIndex: number) => {
+    if (mobileTurning || newIndex === mobilePageIndex) return;
+    const bounded = Math.max(0, Math.min(ALL_PAGES.length - 1, newIndex));
+    const dir = bounded > mobilePageIndex ? 'forward' : 'backward';
+    const fromP = ALL_PAGES[mobilePageIndex];
+    const toP = ALL_PAGES[bounded];
+
+    setMobileTurning({ direction: dir, fromPage: fromP, toPage: toP });
+    if (soundEnabled) {
+      playPaperFlipSound();
+    }
+
+    if (mobileTurningTimerRef.current) clearTimeout(mobileTurningTimerRef.current);
+    mobileTurningTimerRef.current = setTimeout(() => {
+      setMobilePageIndex(bounded);
+      setMobileTurning(null);
+    }, 450);
+  }, [mobileTurning, mobilePageIndex, soundEnabled, ALL_PAGES]);
+
+  const chapterToSpread = (chapterId: string) => {
+    switch (chapterId) {
+      case 'cover': return 0;
+      case 'endpapers': return 1;
+      case 'title': return 2;
+      case 'toc': return 2;
+      case 'about': return 3;
+      case 'skills': return 4;
+      case 'projects': return 5;
+      case 'experience': return 8;
+      case 'contact': return 10;
+      case 'back-cover': return 12;
+      default: return 2;
+    }
+  };
+
+  const navigateToChapter = useCallback((chapterId: string) => {
+    if (isMobile) {
+      goToMobilePage(chapterToMobileIndex(chapterId));
+    } else {
+      turnToSpread(chapterToSpread(chapterId));
+    }
+  }, [isMobile, goToMobilePage, turnToSpread]);
+
+  const navigateToSpread = useCallback((spread: number) => {
+    if (isMobile) {
+      goToMobilePage(spreadToMobileIndex(spread));
+    } else {
+      turnToSpread(spread);
+    }
+  }, [isMobile, goToMobilePage, turnToSpread]);
+
   const next = useCallback(() => {
-    turnToSpread(currentSpread + 1);
-  }, [turnToSpread, currentSpread]);
+    if (isMobile) {
+      if (mobilePageIndex < ALL_PAGES.length - 1) {
+        goToMobilePage(mobilePageIndex + 1);
+      }
+      return;
+    }
+    if (currentSpread < totalSpreads - 1) {
+      turnToSpread(currentSpread + 1);
+    }
+  }, [isMobile, mobilePageIndex, ALL_PAGES.length, goToMobilePage, currentSpread, totalSpreads, turnToSpread]);
 
   const prev = useCallback(() => {
-    turnToSpread(currentSpread - 1);
-  }, [turnToSpread, currentSpread]);
+    if (isMobile) {
+      if (mobilePageIndex > 0) {
+        goToMobilePage(mobilePageIndex - 1);
+      }
+      return;
+    }
+    if (currentSpread > 0) {
+      turnToSpread(currentSpread - 1);
+    }
+  }, [isMobile, mobilePageIndex, goToMobilePage, currentSpread, turnToSpread]);
 
   // =========================================================================
   // MOTEUR PHYSIQUE POINTER DIRECT (Tactile au doigt & Souris en direct)
@@ -293,12 +477,23 @@ export default function InteractiveBook() {
   // =========================================================================
 
   const handlePointerDown = (e: React.PointerEvent) => {
-    if (isFlipping || isDragging) return;
     const target = e.target as HTMLElement;
     // Ne pas intercepter les clics sur les contrôles interactifs
     if (target.closest('button') || target.closest('a') || target.closest('input') || target.closest('textarea')) {
       return;
     }
+
+    if (isMobile) {
+      if (mobileTurning) return;
+      pointerStartX.current = e.clientX;
+      pointerStartY.current = e.clientY;
+      pointerStartTime.current = Date.now();
+      pointerIdRef.current = e.pointerId;
+      hasMovedRef.current = false;
+      return;
+    }
+
+    if (isFlipping || isDragging) return;
 
     const rect = bookContainerRef.current?.getBoundingClientRect();
     if (!rect) return;
@@ -335,6 +530,16 @@ export default function InteractiveBook() {
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
+    if (isMobile) {
+      if (pointerStartX.current === null) return;
+      const deltaX = e.clientX - pointerStartX.current;
+      const deltaY = e.clientY - (pointerStartY.current || e.clientY);
+      if (Math.abs(deltaX) > 8 && Math.abs(deltaX) > Math.abs(deltaY) * 0.75) {
+        hasMovedRef.current = true;
+      }
+      return;
+    }
+
     if (pointerStartX.current === null || isFlipping) return;
 
     const deltaX = e.clientX - pointerStartX.current;
@@ -387,6 +592,29 @@ export default function InteractiveBook() {
   };
 
   const handlePointerEnd = (e: React.PointerEvent) => {
+    if (isMobile) {
+      if (pointerStartX.current !== null && hasMovedRef.current) {
+        const deltaX = e.clientX - pointerStartX.current;
+        const elapsed = Math.max(1, Date.now() - pointerStartTime.current);
+        const velocity = Math.abs(deltaX) / elapsed;
+
+        if (deltaX < -30 || (deltaX < -15 && velocity > 0.28)) {
+          if (mobilePageIndex < ALL_PAGES.length - 1) {
+            goToMobilePage(mobilePageIndex + 1);
+          }
+        } else if (deltaX > 30 || (deltaX > 15 && velocity > 0.28)) {
+          if (mobilePageIndex > 0) {
+            goToMobilePage(mobilePageIndex - 1);
+          }
+        }
+      }
+      pointerStartX.current = null;
+      pointerStartY.current = null;
+      pointerIdRef.current = null;
+      hasMovedRef.current = false;
+      return;
+    }
+
     if (pointerIdRef.current !== null && e.currentTarget.releasePointerCapture) {
       try {
         e.currentTarget.releasePointerCapture(pointerIdRef.current);
@@ -458,6 +686,7 @@ export default function InteractiveBook() {
     return () => {
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
       if (flipTimerRef.current) clearTimeout(flipTimerRef.current);
+      if (mobileTurningTimerRef.current) clearTimeout(mobileTurningTimerRef.current);
     };
   }, []);
 
@@ -486,22 +715,6 @@ export default function InteractiveBook() {
     const body = encodeURIComponent(`${contactData.message}\n\nDe : ${contactData.name} (${contactData.email})`);
     window.location.href = `mailto:${BOOK_DATA.contact.coordinates.email}?subject=${subject}&body=${body}`;
     setContactSubmitted(true);
-  };
-
-  const chapterToSpread = (chapterId: string) => {
-    switch (chapterId) {
-      case 'cover': return 0;
-      case 'endpapers': return 1;
-      case 'title': return 2;
-      case 'toc': return 2;
-      case 'about': return 3;
-      case 'skills': return 4;
-      case 'projects': return 5;
-      case 'experience': return 8;
-      case 'contact': return 10;
-      case 'back-cover': return 12;
-      default: return 2;
-    }
   };
 
   // Rendu de N'IMPORTE QUELLE PAGE individuelle (0 à 20 ou null si aucune page)
@@ -703,7 +916,7 @@ export default function InteractiveBook() {
                 {BOOK_DATA.toc.chapters.map((chap) => (
                   <li key={chap.id}>
                     <button
-                      onClick={(e) => { e.stopPropagation(); turnToSpread(chapterToSpread(chap.id)); }}
+                      onClick={(e) => { e.stopPropagation(); navigateToChapter(chap.id); }}
                       className="w-full flex items-baseline justify-between group text-left cursor-pointer hover:text-[var(--gold)] transition-colors py-0.5"
                     >
                       <div className="flex items-baseline gap-2">
@@ -1113,7 +1326,7 @@ export default function InteractiveBook() {
 
             <div className="space-y-2 pt-3 border-t border-[var(--border)] text-[11px] font-sans-ui text-[var(--ink-soft)] z-10">
               <button
-                onClick={(e) => { e.stopPropagation(); turnToSpread(0); }}
+                onClick={(e) => { e.stopPropagation(); navigateToSpread(0); }}
                 className="inline-flex items-center gap-1 text-[11px] text-[var(--gold)] hover:underline cursor-pointer"
               >
                 <RotateCcw size={12} /> Refermer le livre
@@ -1126,7 +1339,7 @@ export default function InteractiveBook() {
       case 20:
         // DOS EXTÉRIEUR FERMÉ DU LIVRE (4e DE COUVERTURE EXTÉRIEURE)
         return (
-          <div className="w-full h-full p-8 sm:p-12 flex flex-col justify-between items-center text-center relative bg-gradient-to-bl from-[#FBF6EC] via-[#F5EFE0] to-[#EBE2D0] select-none">
+          <div className="w-full h-full p-6 sm:p-8 md:p-10 flex flex-col justify-between items-center text-center relative bg-gradient-to-bl from-[#FBF6EC] via-[#F5EFE0] to-[#EBE2D0] select-none overflow-y-auto">
             {/* Liserés dorés et motifs */}
             <div className="absolute inset-3 border-2 border-[var(--gold)]/40 rounded-sm pointer-events-none" />
             <div className="absolute inset-4 border border-[var(--gold)]/20 rounded-sm pointer-events-none" />
@@ -1154,13 +1367,13 @@ export default function InteractiveBook() {
               <div className="w-20 h-[1.5px] bg-[var(--gold)] mx-auto opacity-70" />
               <div className="flex flex-col sm:flex-row items-center justify-center gap-2 pt-1">
                 <button
-                  onClick={(e) => { e.stopPropagation(); turnToSpread(1); }}
+                  onClick={(e) => { e.stopPropagation(); navigateToChapter('toc'); }}
                   className="px-4 py-2 rounded bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[var(--paper)] font-sans-ui text-xs font-bold tracking-wide uppercase transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
                 >
                   <Bookmark size={13} /> Sommaire
                 </button>
                 <button
-                  onClick={(e) => { e.stopPropagation(); turnToSpread(0); }}
+                  onClick={(e) => { e.stopPropagation(); navigateToSpread(0); }}
                   className="px-4 py-2 rounded border border-[var(--border)] hover:border-[var(--gold)] bg-[var(--paper)] text-[var(--ink)] font-sans-ui text-xs font-semibold transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
                 >
                   <RotateCcw size={13} /> Couverture
@@ -1183,7 +1396,7 @@ export default function InteractiveBook() {
   };
 
   const renderProjectPage = (project: ProjectItem, pageNumber: number) => (
-    <div className="w-full h-full flex flex-col justify-between p-6 sm:p-10 text-[var(--ink)] bg-[#FAF5EA]">
+    <div className="w-full h-full flex flex-col justify-between p-5 sm:p-6 md:p-8 lg:p-9 text-[var(--ink)] bg-[#FAF5EA] overflow-y-auto">
       <div className="space-y-3.5">
         <div className="flex items-center justify-between">
           <span className="font-editorial text-xs font-bold text-[var(--gold)]">
@@ -1201,7 +1414,7 @@ export default function InteractiveBook() {
             {project.subtitle}
           </p>
         </div>
-        <div className="p-4 rounded border border-[var(--border)] bg-[var(--paper-shade)]/40 space-y-2.5 text-xs sm:text-[13px] leading-relaxed">
+        <div className="p-3.5 sm:p-4 rounded border border-[var(--border)] bg-[var(--paper-shade)]/40 space-y-2.5 text-xs sm:text-[13px] leading-relaxed">
           <div>
             <strong className="font-sans-ui text-[10px] uppercase text-[var(--ink-soft)] block font-bold">
               Le Défi :
@@ -1248,7 +1461,7 @@ export default function InteractiveBook() {
   );
 
   const renderExperiencePage = (item: ExperienceItem, pageNumber: number) => (
-    <div className="w-full h-full flex flex-col justify-between p-6 sm:p-10 text-[var(--ink)] bg-[#FAF5EA]">
+    <div className="w-full h-full flex flex-col justify-between p-5 sm:p-6 md:p-8 lg:p-9 text-[var(--ink)] bg-[#FAF5EA] overflow-y-auto">
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <span className="font-sans-ui text-[10px] font-bold text-[var(--gold)] uppercase tracking-wider">
@@ -1266,7 +1479,7 @@ export default function InteractiveBook() {
             chez {item.company} · {item.type}
           </p>
         </div>
-        <div className="p-4 rounded border border-[var(--border)] bg-[var(--paper-shade)]/40 space-y-3">
+        <div className="p-3.5 sm:p-4 rounded border border-[var(--border)] bg-[var(--paper-shade)]/40 space-y-3">
           <p className="text-xs sm:text-[13px] leading-relaxed text-[var(--ink)]">
             {item.narrative}
           </p>
@@ -1410,202 +1623,268 @@ export default function InteractiveBook() {
         </div>
       </header>
 
-      {/* 2. Scène Centrale : LE GRAND LIVRE PLEIN ÉCRAN AVEC TRANSLATION FLUIDE ET CONTRÔLE TACTILE DIRECT */}
+      {/* 2. Scène Centrale : LE GRAND LIVRE PLEIN ÉCRAN */}
       <main
         className="relative flex-1 w-full flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-hidden select-none"
-        style={{ touchAction: 'none' }}
+        style={{ touchAction: isMobile ? 'pan-y' : 'none' }}
       >
-        <div
-          ref={bookContainerRef}
-          onPointerDown={handlePointerDown}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerEnd}
-          onPointerCancel={handlePointerEnd}
-          className={`w-full max-w-[1380px] h-[86vh] max-h-[820px] relative flex select-none ${
-            isDragging ? 'cursor-grabbing' : 'cursor-grab'
-          }`}
-          style={{
-            perspective: '2500px',
-            transform: `translateX(${bookShiftX}%)`,
-            transition: isDragging ? 'none' : 'transform 0.62s cubic-bezier(0.2, 0, 0.2, 1)',
-          }}
-        >
-          {/* Tranches de pages empilées sur les bords latéraux (uniquement visibles si pages présentes) */}
+        {isMobile ? (
           <div
-            className="absolute left-0 top-0 bottom-0 w-2.5 bg-gradient-to-r from-[#DFD0B7] to-transparent z-20 pointer-events-none border-l-2 border-[#C7B59A] rounded-l-lg transition-opacity duration-300"
-            style={{ opacity: currentSpread > 0 ? 1 : 0 }}
-          />
-          <div
-            className="absolute right-0 top-0 bottom-0 w-2.5 bg-gradient-to-l from-[#DFD0B7] to-transparent z-20 pointer-events-none border-r-2 border-[#C7B59A] rounded-r-lg transition-opacity duration-300"
-            style={{ opacity: currentSpread < totalSpreads - 1 ? 1 : 0 }}
-          />
-
-          {/* Pliure centrale réaliste du livre (uniquement visible quand le livre est ouvert) */}
-          <div
-            className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-12 bg-gradient-to-r from-transparent via-[rgba(30,42,56,0.14)] to-transparent z-20 pointer-events-none transition-opacity duration-300"
-            style={{ opacity: currentSpread > 0 && currentSpread < totalSpreads - 1 ? 1 : 0 }}
-          />
-          <div
-            className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-[1px] bg-[rgba(30,42,56,0.22)] z-20 pointer-events-none transition-opacity duration-300"
-            style={{ opacity: currentSpread > 0 && currentSpread < totalSpreads - 1 ? 1 : 0 }}
-          />
-
-          {/* PAGE STATIQUE GAUCHE */}
-          <div
-            className={`w-full md:w-1/2 h-full relative overflow-hidden group/left ${
-              staticLeftPageNum === 20
-                ? 'rounded-lg border border-[var(--border)] shadow-[0_25px_65px_rgba(30,42,56,0.22),0_10px_25px_rgba(30,42,56,0.12)] bg-[#FAF5EA]'
-                : 'rounded-l-lg border-y border-l border-[var(--border)] bg-[#FAF5EA] shadow-[0_20px_50px_rgba(30,42,56,0.14)]'
-            }`}
-            style={{
-              opacity: leftPanelOpacity,
-              pointerEvents: leftPanelOpacity === 0 ? 'none' : undefined,
-              transition: isDragging ? 'none' : 'opacity 0.25s ease',
-            }}
+            ref={bookContainerRef}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerEnd}
+            onPointerCancel={handlePointerEnd}
+            className="relative w-full max-w-[460px] h-[78vh] min-h-[500px] max-h-[740px] mx-auto book-perspective select-none shadow-[0_22px_60px_rgba(30,42,56,0.22)] rounded-lg overflow-hidden border border-[var(--border)] bg-[#FAF5EA] flex flex-col"
           >
-            {renderSinglePage(staticLeftPageNum)}
+            {/* Reliure cuir latérale gauche sur mobile */}
+            <div className="absolute left-0 top-0 bottom-0 w-3 bg-gradient-to-r from-[#2A231D] via-[#4A3B32] to-transparent z-30 pointer-events-none rounded-l-lg opacity-85" />
+            <div className="absolute left-3 top-0 bottom-0 w-[1px] bg-[rgba(184,134,62,0.3)] z-30 pointer-events-none" />
 
-            {/* Ombre portée dynamique lors du tournage */}
-            {isPageTurning && (
+            {/* Page active sous-jacente */}
+            <div className="w-full h-full relative overflow-hidden">
+              {renderSinglePage(
+                mobileTurning
+                  ? (mobileTurning.direction === 'forward' ? mobileTurning.toPage : mobileTurning.fromPage)
+                  : ALL_PAGES[mobilePageIndex]
+              )}
+
+              {/* Ombre portée dynamique sous la feuille volante */}
+              {mobileTurning && (
+                <div
+                  className="absolute inset-0 pointer-events-none z-20 bg-gradient-to-r from-[rgba(30,42,56,0.22)] via-[rgba(30,42,56,0.06)] to-transparent"
+                  style={{
+                    animation: 'underMobilePageShadow 0.45s ease-out forwards',
+                  }}
+                />
+              )}
+            </div>
+
+            {/* Animation de tournage de page mobile (strictement articulée sur la reliure gauche X=0) */}
+            {mobileTurning && (
               <div
-                className="absolute inset-0 pointer-events-none bg-gradient-to-r from-transparent via-[rgba(30,42,56,0.06)] to-[rgba(30,42,56,0.22)] z-30"
-                style={{
-                  transformOrigin: 'right center',
-                  ...(dragProgress !== null
-                    ? { opacity: shadowOpacity, transition: 'none' }
-                    : { animation: 'underPageShadow 0.62s cubic-bezier(0.2, 0, 0.2, 1) forwards' }),
-                }}
-              />
-            )}
-
-            {/* Si dos fermé au repos (Page 20 à gauche centrée) */}
-            {currentSpread === totalSpreads - 1 && !isPageTurning && (
-              <>
-                <div className="absolute left-0 top-0 bottom-0 w-3.5 bg-gradient-to-r from-[#C7B59A] via-[#E8DCB8] to-transparent z-20 border-l border-[#A8987E] pointer-events-none rounded-l-lg" />
-                <div className="absolute right-0 top-0 bottom-0 w-4 bg-gradient-to-l from-[#2A231D] via-[#4A3B32] to-[#685346] z-20 border-l border-[#1E1712] pointer-events-none rounded-r-xs shadow-md" />
-              </>
-            )}
-
-            {/* Coin inférieur gauche */}
-            {currentSpread > 0 && !isPageTurning && (
-              <div 
-                onClick={prev}
-                className="absolute bottom-0 left-0 w-24 h-16 flex items-end justify-start p-3 opacity-60 hover:opacity-100 transition-opacity cursor-pointer z-20"
-              >
-                <span className="font-sans-ui text-[10px] font-bold text-[var(--gold)] flex items-center gap-1 bg-[var(--paper-shade)] px-2.5 py-1 rounded shadow-xs">
-                  ← Précédent
-                </span>
-              </div>
-            )}
-          </div>
-
-          {/* PAGE STATIQUE DROITE */}
-          <div
-            className={`hidden md:block w-1/2 h-full relative overflow-hidden group/right ${
-              currentSpread === 0
-                ? 'rounded-lg border border-[var(--border)] shadow-[0_25px_65px_rgba(30,42,56,0.22),0_10px_25px_rgba(30,42,56,0.12)] bg-[#FAF5EA]'
-                : 'rounded-r-lg border-y border-r border-[var(--border)] bg-[#FAF5EA] shadow-[0_20px_50px_rgba(30,42,56,0.14)]'
-            }`}
-            style={{
-              opacity: rightPanelOpacity,
-              pointerEvents: rightPanelOpacity === 0 ? 'none' : undefined,
-              transition: isDragging ? 'none' : 'opacity 0.25s ease',
-            }}
-          >
-            {renderSinglePage(staticRightPageNum)}
-
-            {/* Si livre fermé au repos (Couverture à droite centrée), ajouter l'épaisseur 3D et la reliure */}
-            {currentSpread === 0 && !isPageTurning && (
-              <>
-                <div className="absolute right-0 top-0 bottom-0 w-3.5 bg-gradient-to-l from-[#C7B59A] via-[#E8DCB8] to-transparent z-20 border-r border-[#A8987E] pointer-events-none rounded-r-lg" />
-                <div className="absolute left-0 top-0 bottom-0 w-4 bg-gradient-to-r from-[#2A231D] via-[#4A3B32] to-[#685346] z-20 border-r border-[#1E1712] pointer-events-none rounded-l-xs shadow-md" />
-              </>
-            )}
-
-            {/* Ombre portée dynamique lors du tournage */}
-            {isPageTurning && (
-              <div
-                className="absolute inset-0 pointer-events-none bg-gradient-to-l from-transparent via-[rgba(30,42,56,0.06)] to-[rgba(30,42,56,0.22)] z-30"
+                key={`${mobileTurning.direction}-${mobileTurning.fromPage}-${mobileTurning.toPage}`}
+                className="absolute inset-0 z-40 pointer-events-none overflow-hidden bg-[#FAF5EA] rounded-r-lg"
                 style={{
                   transformOrigin: 'left center',
-                  ...(dragProgress !== null
-                    ? { opacity: shadowOpacity, transition: 'none' }
-                    : { animation: 'underPageShadow 0.62s cubic-bezier(0.2, 0, 0.2, 1) forwards' }),
+                  animation: mobileTurning.direction === 'forward'
+                    ? 'mobilePageTurnForward 0.45s cubic-bezier(0.2, 0, 0.25, 1) forwards'
+                    : 'mobilePageTurnBackward 0.45s cubic-bezier(0.2, 0, 0.25, 1) forwards',
+                  willChange: 'transform, opacity',
                 }}
-              />
-            )}
-
-            {/* Coin inférieur droit */}
-            {currentSpread < totalSpreads - 1 && !isPageTurning && (
-              <div 
-                onClick={next}
-                className="absolute bottom-0 right-0 w-24 h-16 flex items-end justify-end p-3 opacity-60 hover:opacity-100 transition-opacity cursor-pointer z-20"
               >
-                <span className="font-sans-ui text-[10px] font-bold text-[var(--gold)] flex items-center gap-1 bg-[var(--paper-shade)] px-2.5 py-1 rounded shadow-xs">
-                  Suivant →
-                </span>
+                <div className="w-full h-full">
+                  {renderSinglePage(
+                    mobileTurning.direction === 'forward' ? mobileTurning.fromPage : mobileTurning.toPage
+                  )}
+                </div>
+
+                {/* Ombre de courbure et pliure sur la feuille volante */}
+                <div
+                  className="absolute inset-0 pointer-events-none"
+                  style={{
+                    background: mobileTurning.direction === 'forward'
+                      ? 'linear-gradient(to right, rgba(30,42,56,0.22) 0%, rgba(30,42,56,0.05) 20%, transparent 60%)'
+                      : 'linear-gradient(to right, rgba(30,42,56,0.28) 0%, rgba(30,42,56,0.06) 25%, transparent 70%)',
+                  }}
+                />
               </div>
             )}
-          </div>
 
-          {/* FEUILLE VOLANTE 3D UNIFIÉE (PAGE ENTIÈRE SANS DÉCOUPAGE NI COUPURE DE TEXTE) */}
-          {isPageTurning && (
-            <TurningSheet3D
-              direction={flipDirection}
-              frontPageNum={turningFrontPageNum}
-              backPageNum={turningBackPageNum}
-              renderPage={renderSinglePage}
-              isMobile={isMobile}
-              progress={dragProgress}
+          </div>
+        ) : (
+          /* Desktop & Tablet Spread Layout */
+          <div
+            ref={bookContainerRef}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerEnd}
+            onPointerCancel={handlePointerEnd}
+            className={`w-full max-w-[1380px] h-[86vh] max-h-[820px] relative flex select-none ${
+              isDragging ? 'cursor-grabbing' : 'cursor-grab'
+            }`}
+            style={{
+              perspective: '2500px',
+              transform: `translateX(${bookShiftX}%)`,
+              transition: isDragging ? 'none' : 'transform 0.62s cubic-bezier(0.2, 0, 0.2, 1)',
+            }}
+          >
+            {/* Tranches de pages empilées sur les bords latéraux */}
+            <div
+              className="absolute left-0 top-0 bottom-0 w-2.5 bg-gradient-to-r from-[#DFD0B7] to-transparent z-20 pointer-events-none border-l-2 border-[#C7B59A] rounded-l-lg transition-opacity duration-300"
+              style={{ opacity: currentSpread > 0 ? 1 : 0 }}
             />
-          )}
-        </div>
+            <div
+              className="absolute right-0 top-0 bottom-0 w-2.5 bg-gradient-to-l from-[#DFD0B7] to-transparent z-20 pointer-events-none border-r-2 border-[#C7B59A] rounded-r-lg transition-opacity duration-300"
+              style={{ opacity: currentSpread < totalSpreads - 1 ? 1 : 0 }}
+            />
+
+            {/* Pliure centrale réaliste du livre */}
+            <div
+              className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-12 bg-gradient-to-r from-transparent via-[rgba(30,42,56,0.14)] to-transparent z-20 pointer-events-none transition-opacity duration-300"
+              style={{ opacity: currentSpread > 0 && currentSpread < totalSpreads - 1 ? 1 : 0 }}
+            />
+            <div
+              className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-[1px] bg-[rgba(30,42,56,0.22)] z-20 pointer-events-none transition-opacity duration-300"
+              style={{ opacity: currentSpread > 0 && currentSpread < totalSpreads - 1 ? 1 : 0 }}
+            />
+
+            {/* PAGE STATIQUE GAUCHE */}
+            <div
+              className={`w-1/2 h-full relative overflow-hidden group/left ${
+                staticLeftPageNum === 20
+                  ? 'rounded-lg border border-[var(--border)] shadow-[0_25px_65px_rgba(30,42,56,0.22),0_10px_25px_rgba(30,42,56,0.12)] bg-[#FAF5EA]'
+                  : 'rounded-l-lg border-y border-l border-[var(--border)] bg-[#FAF5EA] shadow-[0_20px_50px_rgba(30,42,56,0.14)]'
+              }`}
+              style={{
+                opacity: leftPanelOpacity,
+                pointerEvents: leftPanelOpacity === 0 ? 'none' : undefined,
+                transition: isDragging ? 'none' : 'opacity 0.25s ease',
+              }}
+            >
+              {renderSinglePage(staticLeftPageNum)}
+
+              {/* Ombre portée dynamique lors du tournage */}
+              {isPageTurning && (
+                <div
+                  className="absolute inset-0 pointer-events-none bg-gradient-to-r from-transparent via-[rgba(30,42,56,0.06)] to-[rgba(30,42,56,0.22)] z-30"
+                  style={{
+                    transformOrigin: 'right center',
+                    ...(dragProgress !== null
+                      ? { opacity: shadowOpacity, transition: 'none' }
+                      : { animation: 'underPageShadow 0.62s cubic-bezier(0.2, 0, 0.2, 1) forwards' }),
+                  }}
+                />
+              )}
+
+              {/* Si dos fermé au repos (Page 20 à gauche centrée) */}
+              {currentSpread === totalSpreads - 1 && !isPageTurning && (
+                <>
+                  <div className="absolute left-0 top-0 bottom-0 w-3.5 bg-gradient-to-r from-[#C7B59A] via-[#E8DCB8] to-transparent z-20 border-l border-[#A8987E] pointer-events-none rounded-l-lg" />
+                  <div className="absolute right-0 top-0 bottom-0 w-4 bg-gradient-to-l from-[#2A231D] via-[#4A3B32] to-[#685346] z-20 border-l border-[#1E1712] pointer-events-none rounded-r-xs shadow-md" />
+                </>
+              )}
+            </div>
+
+            {/* PAGE STATIQUE DROITE */}
+            <div
+              className={`w-1/2 h-full relative overflow-hidden group/right ${
+                currentSpread === 0
+                  ? 'rounded-lg border border-[var(--border)] shadow-[0_25px_65px_rgba(30,42,56,0.22),0_10px_25px_rgba(30,42,56,0.12)] bg-[#FAF5EA]'
+                  : 'rounded-r-lg border-y border-r border-[var(--border)] bg-[#FAF5EA] shadow-[0_20px_50px_rgba(30,42,56,0.14)]'
+              }`}
+              style={{
+                opacity: rightPanelOpacity,
+                pointerEvents: rightPanelOpacity === 0 ? 'none' : undefined,
+                transition: isDragging ? 'none' : 'opacity 0.25s ease',
+              }}
+            >
+              {renderSinglePage(staticRightPageNum)}
+
+              {/* Si livre fermé au repos (Couverture à droite centrée) */}
+              {currentSpread === 0 && !isPageTurning && (
+                <>
+                  <div className="absolute right-0 top-0 bottom-0 w-3.5 bg-gradient-to-l from-[#C7B59A] via-[#E8DCB8] to-transparent z-20 border-r border-[#A8987E] pointer-events-none rounded-r-lg" />
+                  <div className="absolute left-0 top-0 bottom-0 w-4 bg-gradient-to-r from-[#2A231D] via-[#4A3B32] to-[#685346] z-20 border-r border-[#1E1712] pointer-events-none rounded-l-xs shadow-md" />
+                </>
+              )}
+
+              {/* Ombre portée dynamique lors du tournage */}
+              {isPageTurning && (
+                <div
+                  className="absolute inset-0 pointer-events-none bg-gradient-to-l from-transparent via-[rgba(30,42,56,0.06)] to-[rgba(30,42,56,0.22)] z-30"
+                  style={{
+                    transformOrigin: 'left center',
+                    ...(dragProgress !== null
+                      ? { opacity: shadowOpacity, transition: 'none' }
+                      : { animation: 'underPageShadow 0.62s cubic-bezier(0.2, 0, 0.2, 1) forwards' }),
+                  }}
+                />
+              )}
+            </div>
+
+            {/* FEUILLE VOLANTE 3D UNIFIÉE */}
+            {isPageTurning && (
+              <TurningSheet3D
+                direction={flipDirection}
+                frontPageNum={turningFrontPageNum}
+                backPageNum={turningBackPageNum}
+                renderPage={renderSinglePage}
+                isMobile={false}
+                progress={dragProgress}
+              />
+            )}
+          </div>
+        )}
       </main>
 
       {/* 3. Contrôles Inférieurs Flottants & Marque-pages */}
       <footer className="relative z-30 w-full px-4 sm:px-8 py-3 flex items-center justify-between border-t border-[var(--border)] bg-[var(--paper)]/90 backdrop-blur-xs">
-        {/* Navigation Marque-Pages Rapides (Gauche) */}
-        <div className="hidden sm:flex items-center gap-1.5">
-          <span className="font-sans-ui text-[10px] text-[var(--ink-soft)] uppercase tracking-wider font-bold mr-1 flex items-center gap-1">
-            <Bookmark size={11} /> Chapitres :
-          </span>
-          {CHAPTERS.filter(c => c.id !== 'cover' && c.id !== 'title' && c.id !== 'back-cover').map(c => {
-            const target = chapterToSpread(c.id);
-            const isActive = currentSpread === target;
-            return (
-              <button
-                key={c.id}
-                onClick={() => turnToSpread(target)}
-                className={`px-2.5 py-1 rounded text-xs font-sans-ui font-medium transition-all cursor-pointer ${
-                  isActive
-                    ? 'bg-[var(--gold)] text-[var(--paper)] font-bold shadow-xs'
-                    : 'bg-[var(--paper-shade)] text-[var(--ink-soft)] hover:text-[var(--ink)] hover:bg-[var(--paper)] border border-[var(--border)]'
-                }`}
-              >
-                {c.badge || c.title}
-              </button>
-            );
-          })}
-        </div>
+        {/* Navigation Marque-Pages Rapides (Desktop / Tablette) ou Bouton Sommaire (Mobile) */}
+        {isMobile ? (
+          <button
+            onClick={() => setMobileMenuOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--paper-shade)] hover:bg-[var(--paper)] border border-[var(--border)] text-[var(--gold)] font-sans-ui text-xs font-bold transition-all shadow-xs cursor-pointer"
+          >
+            <Bookmark size={13} />
+            <span>Chapitres</span>
+          </button>
+        ) : (
+          <div className="hidden sm:flex items-center gap-1.5">
+            <span className="font-sans-ui text-[10px] text-[var(--ink-soft)] uppercase tracking-wider font-bold mr-1 flex items-center gap-1">
+              <Bookmark size={11} /> Chapitres :
+            </span>
+            {CHAPTERS.filter(c => c.id !== 'cover' && c.id !== 'title' && c.id !== 'back-cover').map(c => {
+              const target = chapterToSpread(c.id);
+              const isActive = currentSpread === target;
+              return (
+                <button
+                  key={c.id}
+                  onClick={() => turnToSpread(target)}
+                  className={`px-2.5 py-1 rounded text-xs font-sans-ui font-medium transition-all cursor-pointer ${
+                    isActive
+                      ? 'bg-[var(--gold)] text-[var(--paper)] font-bold shadow-xs'
+                      : 'bg-[var(--paper-shade)] text-[var(--ink-soft)] hover:text-[var(--ink)] hover:bg-[var(--paper)] border border-[var(--border)]'
+                  }`}
+                >
+                  {c.badge || c.title}
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         {/* Indicateur de page au centre synchronisé */}
         <div className="mx-auto sm:mx-0 font-sans-ui text-xs text-[var(--ink-soft)]">
-          {activeSpreadForIndicator === 0 ? (
-            <span className="font-semibold text-[var(--gold)]">Couverture fermée</span>
-          ) : activeSpreadForIndicator === 1 ? (
-            <span className="font-semibold text-[var(--gold)]">Pages de garde · Feuilles de respect</span>
-          ) : activeSpreadForIndicator === 2 ? (
-            <span className="font-semibold text-[var(--ink)]">Frontispice & Sommaire</span>
-          ) : activeSpreadForIndicator >= 3 && activeSpreadForIndicator <= 10 ? (
-            <span>
-              <strong className="text-[var(--ink)]">
-                Pages {activeSpreadForIndicator * 2 - 3} & {activeSpreadForIndicator * 2 - 2}
-              </strong> sur 18
-            </span>
-          ) : activeSpreadForIndicator === 11 ? (
-            <span className="font-semibold text-[var(--gold)]">Pages de garde finales</span>
+          {isMobile ? (
+            <div className="text-center">
+              <span className="font-bold text-[var(--gold)]">
+                {getMobilePageTitle(mobilePageIndex).title}
+              </span>
+              <span className="text-[10px] text-[var(--ink-soft)] ml-1.5">
+                ({mobilePageIndex + 1}/{ALL_PAGES.length})
+              </span>
+            </div>
           ) : (
-            <span className="font-semibold text-[var(--gold)]">Dos fermé · Fin de l&apos;ouvrage</span>
+            <>
+              {activeSpreadForIndicator === 0 ? (
+                <span className="font-semibold text-[var(--gold)]">Couverture fermée</span>
+              ) : activeSpreadForIndicator === 1 ? (
+                <span className="font-semibold text-[var(--gold)]">Pages de garde · Feuilles de respect</span>
+              ) : activeSpreadForIndicator === 2 ? (
+                <span className="font-semibold text-[var(--ink)]">Frontispice & Sommaire</span>
+              ) : activeSpreadForIndicator >= 3 && activeSpreadForIndicator <= 10 ? (
+                <span>
+                  <strong className="text-[var(--ink)]">
+                    Pages {activeSpreadForIndicator * 2 - 3} & {activeSpreadForIndicator * 2 - 2}
+                  </strong> sur 18
+                </span>
+              ) : activeSpreadForIndicator === 11 ? (
+                <span className="font-semibold text-[var(--gold)]">Pages de garde finales</span>
+              ) : (
+                <span className="font-semibold text-[var(--gold)]">Dos fermé · Fin de l&apos;ouvrage</span>
+              )}
+            </>
           )}
         </div>
 
@@ -1613,7 +1892,7 @@ export default function InteractiveBook() {
         <div className="flex items-center gap-2">
           <button
             onClick={prev}
-            disabled={currentSpread === 0 || isPageTurning}
+            disabled={isMobile ? mobilePageIndex === 0 || !!mobileTurning : currentSpread === 0 || isPageTurning}
             aria-label="Page précédente"
             className="w-9 h-9 rounded-full border border-[var(--border)] bg-[var(--paper)] hover:border-[var(--gold)] text-[var(--ink)] disabled:opacity-20 disabled:pointer-events-none flex items-center justify-center transition-all cursor-pointer shadow-xs"
           >
@@ -1621,7 +1900,7 @@ export default function InteractiveBook() {
           </button>
           <button
             onClick={next}
-            disabled={currentSpread >= totalSpreads - 1 || isPageTurning}
+            disabled={isMobile ? mobilePageIndex >= ALL_PAGES.length - 1 || !!mobileTurning : currentSpread >= totalSpreads - 1 || isPageTurning}
             aria-label="Page suivante"
             className="w-9 h-9 rounded-full border border-[var(--border)] bg-[var(--paper)] hover:border-[var(--gold)] text-[var(--ink)] disabled:opacity-20 disabled:pointer-events-none flex items-center justify-center transition-all cursor-pointer shadow-xs"
           >
@@ -1629,6 +1908,65 @@ export default function InteractiveBook() {
           </button>
         </div>
       </footer>
+
+      {/* Modal Sommaire / Navigation Rapide pour Mobile */}
+      {isMobile && mobileMenuOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex flex-col justify-end transition-opacity">
+          <div 
+            className="absolute inset-0" 
+            onClick={() => setMobileMenuOpen(false)} 
+          />
+          <div className="relative z-10 w-full max-h-[80vh] bg-[#FAF5EA] border-t-2 border-[var(--gold)] rounded-t-2xl p-5 shadow-2xl overflow-y-auto flex flex-col">
+            <div className="flex items-center justify-between pb-3 border-b border-[var(--border)]">
+              <div className="flex items-center gap-2">
+                <BookOpen size={18} className="text-[var(--gold)]" />
+                <h3 className="font-editorial text-lg font-bold text-[var(--ink)]">
+                  Table des Matières
+                </h3>
+              </div>
+              <button
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-8 h-8 rounded-full bg-[var(--paper-shade)] flex items-center justify-center text-[var(--ink-soft)] hover:text-[var(--ink)] border border-[var(--border)] cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="py-3 space-y-1">
+              {CHAPTERS.map(chap => {
+                const mIdx = chapterToMobileIndex(chap.id);
+                const isCurrent = mobilePageIndex === mIdx;
+                return (
+                  <button
+                    key={chap.id}
+                    onClick={() => {
+                      goToMobilePage(mIdx);
+                      setMobileMenuOpen(false);
+                    }}
+                    className={`w-full flex items-center justify-between p-2.5 rounded-lg text-left transition-colors cursor-pointer ${
+                      isCurrent
+                        ? 'bg-[var(--gold)]/15 border border-[var(--gold)] font-bold text-[var(--ink)]'
+                        : 'hover:bg-[var(--paper-shade)] border border-transparent text-[var(--ink-soft)]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="font-editorial text-xs font-bold text-[var(--gold)] w-6">
+                        {chap.badge || '§'}
+                      </span>
+                      <span className="font-editorial text-sm text-[var(--ink)]">
+                        {chap.title}
+                      </span>
+                    </div>
+                    <span className="font-sans-ui text-xs text-[var(--ink-soft)] font-medium">
+                      {chap.page}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
